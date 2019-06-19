@@ -29,9 +29,15 @@ void Algorithm::clear(byte ox, byte oy)
     }
 
   for(byte i = 0; i <15; i++)
+  {
     for(byte j = 0; j < 15; j++)
+    {
         if(robot.tile[i][j][robot.z].visited() && !robot.tile[i][j][robot.z].blackTile())
             m4p[i][j] = 0;
+        if(robot.tile[i][j][robot.z].visited() && !robot.tile[i][j][robot.z].blackTile() && robot.tile[i][j][robot.z].bumper())
+            m4p[i][j] = -2;
+    }
+  }
 
   m4p[objX][objY] = 99;
   m4p[robot.x][robot.y] = 0;
@@ -69,8 +75,14 @@ void Algorithm::startBfs()
 
       if(!algorithmVisiteds[firstCost.a][firstCost.b+1] && m4p[firstCost.a][firstCost.b+1] != -1 && m4p[firstCost.a][firstCost.b+1] != 99 && firstCost.a >= 0 && firstCost.a < 15 && firstCost.b+1 >= 0 && firstCost.b+1 < 15 && !robot.tile[firstCost.a][firstCost.b][robot.z].right())
         {
-          m4p[firstCost.a][firstCost.b+1] = firstCost.node + 1;
-          secondCost.node = firstCost.node + 1;
+          if(m4p[firstCost.a-1][firstCost.b] == -2){
+            m4p[firstCost.a-1][firstCost.b] = firstCost.node + 10;
+            secondCost.node = firstCost.node + 10;
+          }else{
+            m4p[firstCost.a-1][firstCost.b] = firstCost.node + 1;
+            secondCost.node = firstCost.node + 1;
+          }
+          
           secondCost.a = firstCost.a;
           secondCost.b = firstCost.b+1;
           save[firstCost.a][firstCost.b+1] = {firstCost.a, firstCost.b};
@@ -79,8 +91,14 @@ void Algorithm::startBfs()
 
       if(!algorithmVisiteds[firstCost.a][firstCost.b-1] && m4p[firstCost.a][firstCost.b-1] != -1 && m4p[firstCost.a][firstCost.b-1] != 99 && firstCost.a >= 0 && firstCost.a < 15 && firstCost.b-1 >= 0 && firstCost.b-1 < 15 && !robot.tile[firstCost.a][firstCost.b][robot.z].left())
         {
-          m4p[firstCost.a][firstCost.b-1] = firstCost.node + 1;
-          secondCost.node = firstCost.node + 1;
+          if(m4p[firstCost.a-1][firstCost.b] == -2){
+            m4p[firstCost.a-1][firstCost.b] = firstCost.node + 10;
+            secondCost.node = firstCost.node + 10;
+          }else{
+            m4p[firstCost.a-1][firstCost.b] = firstCost.node + 1;
+            secondCost.node = firstCost.node + 1;
+          }
+          
           secondCost.a = firstCost.a;
           secondCost.b = firstCost.b-1;
           save[firstCost.a][firstCost.b-1] = {firstCost.a,firstCost.b};
@@ -89,8 +107,14 @@ void Algorithm::startBfs()
 
       if(!algorithmVisiteds[firstCost.a+1][firstCost.b] && m4p[firstCost.a+1][firstCost.b] != -1 && m4p[firstCost.a+1][firstCost.b] != 99 && firstCost.a+1 >= 0 && firstCost.a+1 < 15 && firstCost.b >= 0 && firstCost.b < 15 && !robot.tile[firstCost.a][firstCost.b][robot.z].down())
         {
-          m4p[firstCost.a+1][firstCost.b] = firstCost.node + 1;
-          secondCost.node = firstCost.node + 1;
+          if(m4p[firstCost.a-1][firstCost.b] == -2){
+            m4p[firstCost.a-1][firstCost.b] = firstCost.node + 10;
+            secondCost.node = firstCost.node + 10;
+          }else{
+            m4p[firstCost.a-1][firstCost.b] = firstCost.node + 1;
+            secondCost.node = firstCost.node + 1;
+          }
+          
           secondCost.a = firstCost.a+1;
           secondCost.b = firstCost.b;
           save[firstCost.a+1][firstCost.b] = {firstCost.a,firstCost.b};
@@ -143,13 +167,13 @@ void Algorithm::findWay()
           menor = m4p[BFSx][BFSy+1];
           moves[contador] = 'i';
         }
-
+        
       if((m4p[BFSx+1][BFSy] < menor) && (m4p[BFSx+1][BFSy] != -1) && (algorithmVisiteds[BFSx+1][BFSy] == true) && BFSx+1 >= 0 && BFSy >= 0 && BFSx+1 < 15 && BFSy < 15 && (!robot.tile[BFSx][BFSy][robot.z].down()))
        {
           menor = m4p[BFSx+1][BFSy];
           moves[contador] = 'f';
         }
-
+        
       if((m4p[BFSx-1][BFSy] < menor) && (m4p[BFSx-1][BFSy] != -1) && (algorithmVisiteds[BFSx-1][BFSy] == true) && BFSx-1 >= 0 && BFSy >= 0 && BFSx-1 < 15 && BFSy < 15 && (!robot.tile[BFSx][BFSy][robot.z].up()))
         {
           menor = m4p[BFSx-1][BFSy];
@@ -408,13 +432,15 @@ void Algorithm::moveForward(bool &perfect)
    bool fT = true;
    int aux;
    double diE = sensors.getDistanceOf(sensors.echo_E, 3);
-   double diA = sensors.getDistanceOf(sensors.echo_A,4);
+   double diA = sensors.getDistanceOf(sensors.echo_A, 4);
 
-  if( diE<= 20)
+  if( diE <= 20)
   {
     perfect=false;
+    wrongAlg = true;
     return;
   }
+  
 if(sensors.motors.bumper(tam))
 {
   fT=false;
@@ -472,7 +498,12 @@ if(sensors.motors.bumper(tam))
           break;
         }
 
-        (robot.z == 0) ? robot.z = 1 : robot.z = 0;
+        (value == 1) ? robot.z++ : robot.z--;
+
+        if(robot.z == 4)
+          robot.dataTransferUpFloor();
+        else if(robot.z == -1)
+          robot.dataTransferDownFloor();
 
         switch(robot.getDirection())
         {
